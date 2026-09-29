@@ -4,7 +4,7 @@
 <meta name="theme-color" content="#070B14">
 <meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes">
 <link rel="icon" href="icon-192.png"><link rel="apple-touch-icon" href="icon-192.png">
-<script>(function(){try{var d=document.documentElement,t=localStorage.getItem("hx-theme")||"dark",f=localStorage.getItem("hx-fx")||"full";d.dataset.theme=t;d.dataset.fx=f;var dark=t==="dark"||(t==="auto"&&matchMedia("(prefers-color-scheme:dark)").matches);var m=document.querySelector('meta[name=theme-color]');if(m)m.content=dark?"#070B14":"#EAF0FF"}catch(e){}})()</script>
+<script>(function(){try{var d=document.documentElement,t=localStorage.getItem("hx-theme")||"dark",f=localStorage.getItem("hx-fx")||"lite";d.dataset.theme=t;d.dataset.fx=f;var dark=t==="dark"||(t==="auto"&&matchMedia("(prefers-color-scheme:dark)").matches);var m=document.querySelector('meta[name=theme-color]');if(m)m.content=dark?"#070B14":"#EAF0FF"}catch(e){}})()</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500&display=swap">
@@ -475,6 +475,67 @@ details.blk>summary::-webkit-details-marker{display:none}
 .acc2 .ht{display:flex;flex-direction:column;gap:2px;min-width:0;text-align:left}
 .acc2 .ht b{font-weight:600}
 .acc2 .ht small{font-weight:400;color:var(--muted);font-size:12px}
+
+/* ===== v2.1: sakin tema — blur yok, neon yok, sabit nav ===== */
+:root{
+  --bg:#0F1319; --bg-2:#0F1319;
+  --surface:#171C24; --surface-2:#1C222B; --sunk:#12171E; --solid:#171C24;
+  --line:rgba(255,255,255,.09); --line-2:rgba(255,255,255,.05);
+  --ink:#E9EDF3; --muted:#9AA5B5; --faint:#6E7A8C;
+  --accent:#6F8BD8; --accent-2:#8A7FD0; --accent-soft:rgba(111,139,216,.14);
+  --grad:linear-gradient(135deg,#5673C8,#6A66C4);
+  --good:#4CC38F; --warn:#E5AD4A; --bad:#E5687A;
+  --c-str:#5F7FD1; --c-run:#3FB98F; --c-long:#D9A03C; --c-test:#D06A9A; --c-rest:#7C8799;
+  --shadow:0 2px 10px rgba(0,0,0,.28); --shadow-lift:0 4px 16px rgba(0,0,0,.35);
+}
+:root[data-theme="light"]{
+  --bg:#F1F3F7; --bg-2:#F1F3F7; --surface:#FFFFFF; --surface-2:#FFFFFF; --sunk:#E9ECF2; --solid:#FFFFFF;
+  --line:rgba(20,30,60,.10); --line-2:rgba(20,30,60,.06);
+  --accent:#3F5FC8; --accent-2:#6A56C8; --grad:linear-gradient(135deg,#3F5FC8,#5A55C4);
+  --shadow:0 1px 6px rgba(30,45,90,.10); --shadow-lift:0 4px 14px rgba(30,45,90,.16);
+}
+*,*::before,*::after{-webkit-backdrop-filter:none!important;backdrop-filter:none!important;text-shadow:none!important}
+.orb,.grain{display:none!important}
+.bg{background:var(--bg)}
+.card,.sec,.ex,.next,.dayb,.cal button,.btn,.chip,details.blk,.opt-btn,.acc>.acc-h,.kpi,.tile{background:var(--surface)}
+.card::after,.sec::after,.kpi::after,.tile::after,.next::after{display:none}
+html,body{overflow-x:hidden;max-width:100%}
+#app{overflow-x:clip}
+.sprog{background:var(--accent)}
+.sleep .moon{filter:none}
+.chip[aria-pressed="true"],.seg button[aria-pressed="true"],.dayb.sel,nav.tabbar .ind{box-shadow:none}
+/* navigasyon: tam opak */
+nav.tabbar{left:0;right:0;bottom:0;max-width:none;margin:0}
+nav.tabbar .in{height:calc(var(--nav) + env(safe-area-inset-bottom,0px));padding:6px 8px calc(6px + env(safe-area-inset-bottom,0px));border-radius:0;background:var(--solid)!important;border:0;border-top:1px solid var(--line);box-shadow:0 -6px 18px rgba(0,0,0,.25);max-width:640px;margin-inline:auto}
+nav.tabbar .ind{top:6px;bottom:calc(6px + env(safe-area-inset-bottom,0px));left:8px;width:calc((100% - 16px)/5);background:var(--accent-soft);border-radius:16px;opacity:1}
+nav.tabbar button[aria-current="page"]{color:var(--accent)}
+nav.tabbar button[aria-current="page"] svg{transform:none}
+.stick{background:var(--bg)!important}
+.pagehead{background:var(--bg)!important}
+.timer{background:var(--solid)!important}
+/* takvim: yatay taşma yok */
+.calclip{overflow:hidden;margin-inline:-16px;padding-inline:16px}
+@keyframes calin-n{from{opacity:0;transform:translate3d(14%,0,0)}to{opacity:1;transform:none}}
+@keyframes calin-p{from{opacity:0;transform:translate3d(-14%,0,0)}to{opacity:1;transform:none}}
+/* hareket: sade */
+#app[data-enter]>*,#app>*{animation:none!important}
+.hero .wm{animation:none!important}
+/* hero + uyku: düz, mat renkler */
+.hero{--h1:#3F5CAE;--h2:#4A5A9E;background:var(--h1)!important;border-color:transparent;box-shadow:var(--shadow)}
+.hero.t-run{--h1:#2C8A6E;--h2:#2C8A6E}
+.hero.t-long{--h1:#B9812E;--h2:#B9812E}
+.hero.t-test{--h1:#B25585;--h2:#B25585}
+.hero.t-rest{--h1:#4B5568;--h2:#4B5568}
+.sleep,.sleep.awake{background:#1F2842!important;border-color:var(--line);box-shadow:var(--shadow)}
+.bigbtn{box-shadow:none!important}
+.check{box-shadow:none}
+.hero.t-mk{--h1:#A8683A;--h2:#A8683A}
+.cal button .k{font-size:9px;letter-spacing:0;text-transform:none;font-weight:600;text-overflow:ellipsis}
+.mks{left:auto;right:5px;top:4px}
+.sleep .moon{filter:none;opacity:.9}
+.cal button{padding-inline:1px}
+.cal button .k{font-size:8.5px;text-overflow:clip}
+.mks{top:2px;right:2px}.mks svg{width:8px;height:8px}
 </style>
 </head><body>
 <div class="bg" aria-hidden="true"><i class="orb o1"></i><i class="orb o2"></i><i class="orb o3"></i><i class="grain"></i></div>
@@ -1092,7 +1153,7 @@ function calLabel(p){
   const ty=typeOf(p);if(!p)return "";
   if(ty.k==="str")return "Kuvvet";if(ty.k==="both")return "K + Koşu";
   if(ty.k==="test")return "Test";
-  if(ty.k==="long")return "Uzun "+String(p.run.km).replace(".",",");
+  if(ty.k==="long")return String(p.run.km).replace(".",",")+" km";
   if(ty.k==="run")return String(p.run.km).replace(".",",")+" km";
   return "Dinlen"}
 function renderCal(){
@@ -1107,14 +1168,14 @@ function renderCal(){
   const isNow=calMonth===t.slice(0,7);
   const LG=[["Kuvvet","--c-str"],["Koşu","--c-run"],["Uzun koşu","--c-long"],["Test","--c-test"],["Dinlenme","--c-rest"]];
   return `<header class="calhead"><div><div class="eyebrow" style="font:600 13px var(--f-display);text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:4px">Takvim · kaydırarak ay değiştir</div><h1>${TR_MONL[mo-1]} ${y}</h1></div><div class="row" style="flex-wrap:nowrap;gap:8px">${isNow?"":`<button type="button" class="btn" data-monnow>Bugün</button>`}<button type="button" class="iconbtn" data-mon="-1" aria-label="Önceki ay" style="width:42px;height:42px"><svg viewBox="0 0 24 24" style="transform:rotate(90deg)">${I.chev}</svg></button><button type="button" class="iconbtn" data-mon="1" aria-label="Sonraki ay" style="width:42px;height:42px"><svg viewBox="0 0 24 24" style="transform:rotate(-90deg)">${I.chev}</svg></button></div></header>
-    <div class="sec calwrap ${an}" id="calBody" data-swipe><div class="cal">${TR_D3.slice(1).concat(TR_D3[0]).map(d=>`<div class="h">${d}</div>`).join("")}${cells}</div>
+    <div class="calclip"><div class="sec calwrap ${an}" id="calBody" data-swipe><div class="cal">${TR_D3.slice(1).concat(TR_D3[0]).map(d=>`<div class="h">${d}</div>`).join("")}${cells}</div>
     <div class="legend">${LG.map(([n,c])=>`<span><i style="--lc:var(${c})"></i>${n}</span>`).join("")}</div>
-    <div class="legend"><span><i style="--lc:var(--good)" class="dotl"></i>tamam</span><span><i style="--lc:var(--warn)" class="dotl"></i>yarım</span><span><i class="ring2"></i>kaçırıldı</span><span><svg viewBox="0 0 24 24" style="width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round">${I.cart}</svg>market/prep</span><span><i class="fbdot"></i>halı saha</span></div></div>
+    <div class="legend"><span><i style="--lc:var(--good)" class="dotl"></i>tamam</span><span><i style="--lc:var(--warn)" class="dotl"></i>yarım</span><span><i class="ring2"></i>kaçırıldı</span><span><svg viewBox="0 0 24 24" style="width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round">${I.cart}</svg>market/prep</span><span><i class="fbdot"></i>halı saha</span></div></div></div>
     <div class="kgrid"><div class="kpi" style="--kc:var(--c-str)"><div class="kl">Antrenman</div><div class="kv"><span data-count="${dn}">${dn}</span><small>/ ${pl}</small></div><div class="ks">bu ay tamamlanan seans</div></div><div class="kpi" style="--kc:var(--c-run)"><div class="kl">Koşu</div><div class="kv"><span data-count="${kmD.toFixed(1)}" data-dec="1">${f1(kmD)}</span><small>km</small></div><div class="ks">plan ${f1(kmP)} km${fbN?` · halı saha ${fbN}`:""}</div></div></div>
     ${Object.entries(weeks).map(([w,ks])=>{const km=ks.reduce((a,k)=>a+(num(S.plan[k].run&&S.plan[k].run.km)||0),0);return `<div class="sec"><div class="row between"><h3>${esc(w)}</h3><span class="small muted">${f1(km)} km · ${ks.filter(k=>S.plan[k].session).length} kuvvet</span></div>${ks.map(k=>{const ty=typeOf(S.plan[k]);return `<button type="button" class="tick" data-cday="${k}"><span class="box ${dayClass(k)==="full"?"on":""}">✓</span><span class="tx"><span class="tinttag" style="--tc:${TC[ty.k]};${ty.k==="both"?"background:linear-gradient(135deg,var(--c-str),var(--c-run))":""}"></span> <b>${TR_D3[parse(k).getDay()]} ${parse(k).getDate()}</b> · ${esc(S.plan[k].title)}</span><span class="go">›</span></button>`}).join("")}</div>`}).join("")}`}
 function changeMonth(delta){
   const el=$("#calBody"),apply=()=>{const [y,m]=calMonth.split("-").map(Number);const d=new Date(y,m-1+delta,1);calMonth=d.getFullYear()+"-"+pad(d.getMonth()+1);calAnim=delta>0?"n":"p";render()};
-  if(el&&!lite()){el.style.transition="transform .17s ease-in,opacity .17s";el.style.transform=`translate3d(${-delta*38}%,0,0)`;el.style.opacity="0";setTimeout(apply,150)}else apply()}
+  if(el&&!lite()){el.style.transition="transform .17s ease-in,opacity .17s";el.style.transform=`translate3d(${-delta*14}%,0,0)`;el.style.opacity="0";setTimeout(apply,150)}else apply()}
 
 
 /* ---------- PROGRESS ---------- */
@@ -1369,7 +1430,7 @@ function renderSet(){const s=S.settings;
   return `<div class="pagehead"><button type="button" class="back" data-back>‹ Geri</button><div class="pt">Ayarlar</div></div>
    <div class="sec"><h2>Profil</h2><label class="f">Adın<input id="s-name" value="${esc(s.name||"Soner")}" autocomplete="off" maxlength="24"></label></div>
    <div class="sec"><h2>Görünüm</h2><div class="stack" style="gap:8px"><div class="small muted">Tema</div>${seg("data-theme-set",getTheme(),[["dark","Koyu"],["light","Açık"],["auto","Sistem"]])}</div>
-    <div class="stack" style="gap:8px"><div class="small muted">Efektler</div>${seg("data-fx-set",getFx(),[["full","Tam"],["lite","Sade"]])}<div class="tiny muted">Sade mod cam bulanıklığını, parallax'ı ve hareketleri kapatır. Telefon kasıyorsa ya da pil tasarrufu için seç. Bu iki ayar sadece bu cihazda geçerli.</div></div></div>
+    <div class="stack" style="gap:8px"><div class="small muted">Efektler</div>${seg("data-fx-set",getFx(),[["full","Tam"],["lite","Sade"]])}<div class="tiny muted">Sade mod geçiş animasyonlarını da kapatır. Telefon kasıyorsa ya da pil tasarrufu için seç. Bu iki ayar sadece bu cihazda geçerli.</div></div></div>
    <div class="sec"><h2>Hedefler</h2><div class="g2"><label class="f">Yarış tarihi<input id="s-race" type="date" value="${esc(s.race)}"></label><label class="f">Kalori hedefi<input id="s-kcal" inputmode="numeric" value="${esc(s.kcal)}"></label><label class="f">Protein hedefi (g)<input id="s-protein" inputmode="numeric" value="${esc(s.protein)}"></label><label class="f">Hedef kilo<input id="s-goal" inputmode="decimal" value="${esc(s.goal)}"></label><label class="f">Uyku hedefi (saat)<input id="s-sleep" inputmode="decimal" value="${esc(s.sleepGoal||7)}"></label></div><button type="button" class="bigbtn" data-saveset>Kaydet</button></div>
    <div class="sec"><h2>Senkron</h2><div class="small muted">${S.mode==="sync"?`Kayıtlar buluta gönderiliyor; telefon ve bilgisayarda aynı, Claude da okuyabilir. ${queue().length?queue().length+" kayıt gönderilmeyi bekliyor.":"Her şey gönderildi."}`:"Sadece bu telefonda: veriler başka yere gitmiyor."}</div>
      <div class="row">${S.mode==="sync"?`<button type="button" class="btn" data-showkey>Kodu göster</button><button type="button" class="btn" data-syncnow>Şimdi eşitle</button>`:`<button type="button" class="btn" data-changekey>Senkron kodu gir</button>`}</div><div class="small num" id="keyOut" style="word-break:break-all"></div></div>
@@ -1471,7 +1532,7 @@ function doImport(f){if(!f)return;const r=new FileReader();r.onload=async()=>{tr
 
 /* ---------- THEME / FX / SCROLL / SWIPE / NEW ACTIONS ---------- */
 function getTheme(){return document.documentElement.dataset.theme||"dark"}
-function getFx(){return document.documentElement.dataset.fx||"full"}
+function getFx(){return document.documentElement.dataset.fx||"lite"}
 function lite(){return getFx()==="lite"||matchMedia("(prefers-reduced-motion:reduce)").matches}
 function applyTheme(t){try{localStorage.setItem("hx-theme",t)}catch(e){}document.documentElement.dataset.theme=t;
   const dark=t==="dark"||(t==="auto"&&matchMedia("(prefers-color-scheme:dark)").matches);const m=document.querySelector('meta[name=theme-color]');if(m)m.content=dark?"#070B14":"#EAF0FF"}
