@@ -448,7 +448,7 @@ details.blk>summary::-webkit-details-marker{display:none}
 .legend i.dotl{border-radius:50%;width:9px;height:9px}
 @keyframes ringin{from{stroke-dashoffset:138.2}}
 #app[data-enter] .ring .fg{animation:ringin 1.1s cubic-bezier(.2,.8,.2,1) both}
-#app[data-enter] .spk{animation:fadein .9s .25s both}
+
 .sbtn2{display:flex;align-items:center;justify-content:center;gap:8px}
 .sbtn2 svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex:none}
 .sleep .lnk{min-height:36px}
@@ -573,6 +573,10 @@ nav.tabbar button:active svg{transform:scale(.88)}
 .timer .tv{min-width:0;font-size:32px}
 .timer button{padding:8px 9px;font-size:13px;white-space:nowrap}
 .pmore .sec{box-shadow:none;background:var(--sunk)}
+.macro{grid-template-columns:repeat(2,minmax(0,1fr));row-gap:14px}
+.stat3 .v{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.stat3 .v.sm{font-size:21px;line-height:30px}
+.stat3 .v.sm{font-size:17px}
 </style>
 </head><body>
 <div class="bg" aria-hidden="true"></div>
@@ -623,7 +627,7 @@ const parseTime=s=>{if(!s)return null;s=String(s).trim();if(/^\d+([.,]\d+)?$/.te
 const fmtPace=sec=>{if(!sec||!isFinite(sec))return "–";let m=Math.floor(sec/60),s=Math.round(sec%60);if(s===60){m++;s=0}return m+":"+pad(s)};
 const firstNum=t=>{const m=String(t||"").match(/(\d+(?:[.,]\d+)?)/);return m?m[1].replace(",","."):""};
 const clone=o=>JSON.parse(JSON.stringify(o||{}));
-function toast(t,err,big){if(!err&&!big&&Date.now()<(toast.hold||0))return;const el=$("#toast");el.hidden=true;el.textContent=t;el.className="toast"+(err?" err":"")+(big?" big":"");void el.offsetWidth;el.hidden=false;toast.hold=big?Date.now()+3000:0;clearTimeout(toast.t);toast.t=setTimeout(()=>el.hidden=true,big?3000:1500)}
+function toast(t,err,big){if(!err&&!big&&Date.now()<(toast.hold||0))return;const el=$("#toast");el.hidden=true;el.textContent=t;el.className="toast"+(err?" err":"")+(big===true?" big":"");void el.offsetWidth;el.hidden=false;toast.hold=big?Date.now()+3000:0;clearTimeout(toast.t);toast.t=setTimeout(()=>el.hidden=true,big?3000:1500)}
 
 /* ---------- library helpers ---------- */
 function foodLine(fid,q,mult){
@@ -811,7 +815,7 @@ function renderHome(){
   if(p&&p.prep)h+=marketCard();
   if(p&&p.session)h+=trainCard(p,d);
   if(p&&p.run)h+=runCard(p,d);
-  if(p&&!p.session&&!p.run)h+=`<div class="card big hero t-rest">${wm("leaf")}<div class="lbl"><span>Dinlenme günü</span></div><div class="ttl">${esc(p.title)}</div><div class="small muted">${esc(p.goal||"")}</div></div>`;
+  if(p&&!p.session&&!p.run)h+=`<div class="card big hero t-rest">${wm("leaf")}<div class="lbl"><span>Dinlenme günü</span></div><div class="small" style="margin-top:4px">${esc(p.goal||"Bugün antrenman yok. Toparlan, iyi ye, iyi uyu.")}</div></div>`;
   if(p)h+=foodCard(p,d);
   const sm=[];
   if(p&&p.morning)sm.push(smallCard("morning","Sabah rutini",p.morning.mob?routineOf(p.morning.mob).name+" + yürüyüş":"Yürüyüş",d.morning&&d.morning.done));
@@ -899,7 +903,7 @@ function sleepCard(){
   const when=ls?(ls.k===todayKey()?"Bu gece":ls.k===addDays(todayKey(),-1)?"Dün gece":nice(ls.k)):"";
   return `<div class="card sleep awake">${stars}<div class="row" style="flex-wrap:nowrap;gap:14px">${moon.replace('moon-anim','')}<div style="flex:1;min-width:0"><div class="lbl"><span>Uyku</span><span class="pill">hedef ${f1(goal)} sa</span></div>
     ${ls?`<div class="clock">${fmtDur(ls.h*60)}</div><div class="tiny muted">${when}${ls.d.bed&&ls.d.wake?` · ${esc(ls.d.bed)} → ${esc(ls.d.wake)}`:""}</div>`:`<div class="small muted" style="margin-top:4px">Yatmadan önce dokun, kalkınca tekrar dokun. Süre otomatik hesaplanır.</div>`}</div></div>
-    ${ls?`<div class="bar"><i style="width:${pct}%;${ls.h>=goal?"background:linear-gradient(90deg,#2ED3A0,#B6F04A)":""}"></i></div>`:""}
+    ${ls?`<div class="bar"><i style="width:${pct}%;${ls.h>=goal?"background:var(--good)":""}"></i></div>`:""}
     <button type="button" class="sbtn2" data-sleep="start">${svgI("moon","")} Uyumaya gidiyorum</button>
     ${ls?`<div class="row between"><button type="button" class="lnk" data-sleep="editlast">Saatleri düzelt</button><span class="tiny muted">${ls.h>=goal?"Hedefe ulaştın":"Hedefe "+fmtDur((goal-ls.h)*60)+" var"}</span></div>`:""}</div>`}
 function sleepAct(a){
@@ -912,11 +916,11 @@ function sleepAct(a){
   if(a==="savestart"){const v=($("#sl-bed")||{}).value;if(!v){toast("Saat seç",true);return}let dt=timeToDate(todayKey(),v);if(dt>new Date())dt.setDate(dt.getDate()-1);write("settings","main",{...S.settings,sleepStart:dt.toISOString()});sleepEdit=null;toast("Yatış saati güncellendi");render();return}
   if(a==="wake"){if(!st)return;const bed=new Date(st),wake=new Date(),mins=(wake-bed)/6e4;
     if(mins<30||mins>16*60){sleepEdit={mode:"fix",date:todayKey(),bed:hhmm(bed),wake:hhmm(wake),msg:mins<30?"Çok kısa görünüyor. Yattığın saati kontrol et.":"Çok uzun görünüyor. Yattığın saati kontrol et.",pending:true};render();return}
-    const h=applySleep(todayKey(),bed,wake);clearSleep();sleepEdit=null;toast("Günaydın · "+fmtDur(h*60)+" uyudun");render();return}
+    const h=applySleep(todayKey(),bed,wake);clearSleep();sleepEdit=null;toast("Günaydın · "+fmtDur(h*60)+" uyudun",false,"hold");render();return}
   if(a==="savefix"){const c=sleepEdit;if(!c)return;const b=($("#sl-bed")||{}).value,w=($("#sl-wake")||{}).value;if(!b||!w){toast("İki saati de seç",true);return}
     const wd=timeToDate(c.date,w);const bd=timeToDate(c.date,b);if(bd>=wd)bd.setDate(bd.getDate()-1);const mins=(wd-bd)/6e4;
     if(mins<30||mins>18*60){sleepEdit={...c,bed:b,wake:w,msg:"Süre 30 dk ile 18 sa arasında olmalı."};render();return}
-    const h=applySleep(c.date,bd,wd);if(S.settings.sleepStart)clearSleep();sleepEdit=null;toast("Kaydedildi · "+fmtDur(h*60));render();return}
+    const h=applySleep(c.date,bd,wd);if(S.settings.sleepStart)clearSleep();sleepEdit=null;toast("Kaydedildi · "+fmtDur(h*60),false,"hold");render();return}
 }
 
 /* ---------- HIZLI KAYIT · KİLO KOÇU · REKOR ---------- */
@@ -1079,7 +1083,7 @@ function pageFood(p){
 /* check */
 function pageCheck(){
   const d=draft;
-  const sl=(k,label)=>`<label class="f">${label} <b class="num" style="font-size:18px;color:var(--ink)" id="o-${k}">${esc(d[k]||0)}</b>/10<input type="range" min="0" max="10" step="1" id="rg-${k}" data-range="${k}" value="${esc(d[k]||0)}"></label>`;
+  const sl=(k,label)=>`<label class="f"><span>${label} <b class="num" style="font-size:18px;color:var(--ink)" id="o-${k}">${esc(d[k]||0)}</b>/10</span><input type="range" min="0" max="10" step="1" id="rg-${k}" data-range="${k}" value="${esc(d[k]||0)}"></label>`;
   return head("Kilo · uyku · ağrı")+`<div class="sec"><h3>Sabah</h3><div class="small muted">Tartı: uyanınca, tuvaletten sonra, aç karnına, aynı kıyafetle.</div>
     <div class="g3"><label class="f">Kilo (kg)<input id="c-w" inputmode="decimal" data-f="weight" value="${esc(d.weight||"")}" placeholder="64,0"></label><label class="f">Uyku (saat)<input id="c-s" inputmode="decimal" data-f="sleep" value="${esc(d.sleep||"")}" placeholder="7,5"></label><label class="f">Yatış<input id="c-b" type="time" data-f="bed" value="${esc(d.bed||"")}"></label></div>
     <div class="f" style="font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em">Enerji (1 bitkin · 5 çok iyi)</div>
@@ -1360,7 +1364,7 @@ function renderProg(){
    <div class="acc2 pmore ${guideOpen.has("pmore")?"open":""}" data-accid="pmore"><button type="button" class="h2" data-acc="pmore" aria-expanded="${guideOpen.has("pmore")}"><span class="ht"><b>Daha fazla grafik</b><small>Haftalık hacim, enerji, ağrı</small></span><svg class="chev" viewBox="0 0 24 24" aria-hidden="true">${I.chev}</svg></button><div class="acc-body"><div class="acc-in"><div class="stack"><div class="sec"><div class="row between"><h2>Hacim</h2><span class="small muted">haftalık tonaj</span></div><div class="chart" id="chVol"></div></div>
    
    <div class="sec"><h2>Toparlanma</h2><div class="small muted">Enerji · haftalık ortalama (1–5)</div><div class="chart" id="chEn"></div><div class="small muted" style="margin-top:6px">Ağrı · haftalık en yüksek (0–10)</div><div class="chart" id="chPain"></div></div></div></div></div></div>
-   <div class="sec"><h2>Testler</h2><div class="g3"><label class="f">Test<select id="bmName"><option>5K koşu</option><option>1 km koşu</option><option>Max barfiks</option><option>Max şınav</option><option>100 wall ball</option><option>Diğer</option></select></label><label class="f">Sonuç<input id="bmVal" placeholder="27:40 veya 14"></label><label class="f">Tarih<input id="bmDate" type="date" value="${todayKey()}"></label></div>
+   <div class="sec"><h2>Testler</h2><div class="g2"><label class="f" style="grid-column:1/-1">Test<select id="bmName"><option>5K koşu</option><option>1 km koşu</option><option>Max barfiks</option><option>Max şınav</option><option>100 wall ball</option><option>Diğer</option></select></label><label class="f">Sonuç<input id="bmVal" placeholder="27:40 veya 14"></label><label class="f">Tarih<input id="bmDate" type="date" value="${todayKey()}"></label></div>
      <div class="row" style="flex-wrap:nowrap"><input id="bmNote" placeholder="Not" style="flex:1"><button type="button" class="btn" data-bmadd>Kaydet</button></div><div id="bmTable"></div></div>`}
 const weeksOf=()=>progRange<=28?6:progRange<=84?12:26;
 function lineFit(pts){const n=pts.length;if(n<2)return null;const mx=avg(pts.map(p=>p[0])),my=avg(pts.map(p=>p[1]));let a=0,b=0;pts.forEach(p=>{a+=(p[0]-mx)*(p[1]-my);b+=(p[0]-mx)**2});return b?a/b:null}
@@ -1499,7 +1503,7 @@ function renderProfile(){
   const pd=diffDays(PROGRAM_START,t);const wk=pd<0?"Hazırlık":"Hafta "+(Math.floor(pd/7)+1);
   return `<header class="top"><div><div class="eyebrow">Profil</div><h1>${esc(name)}</h1></div><button type="button" class="iconbtn" data-goset aria-label="Ayarlar" title="Ayarlar"><svg viewBox="0 0 24 24">${I.gear}</svg></button></header>
    <div class="sec"><div class="pfhead"><div class="avatar">${esc(name.charAt(0).toLocaleUpperCase("tr"))}</div><div style="min-width:0"><div class="row" style="gap:6px"><span class="pill acc">${esc(p?p.phase:"Hazırlık")}</span></div><div class="small muted" style="margin-top:6px">Yarış ${nice(race)} ${parse(race).getFullYear()}</div><div class="small muted">${S.mode==="sync"?(S.online?"Bulutla eşleşiyor":"Çevrimdışı, telefonda bekliyor"):"Sadece bu telefonda"}</div></div></div>
-    <div class="stat3"><div><div class="v"><span data-count="${rd}">${rd}</span></div><div class="l">Yarışa gün</div></div><div><div class="v">${esc(wk)}</div><div class="l">Program</div></div><div><div class="v">${cs==null?"–":`<span data-count="${Math.round(cs*100)}">${Math.round(cs*100)}</span>%`}</div><div class="l">İstikrar · 4 hf</div></div></div></div>
+    <div class="stat3"><div><div class="v"><span data-count="${rd}">${rd}</span></div><div class="l">Yarışa gün</div></div><div><div class="v ${pd<0?"sm":""}">${esc(wk)}</div><div class="l">Program</div></div><div><div class="v">${cs==null?"–":`<span data-count="${Math.round(cs*100)}">${Math.round(cs*100)}</span>%`}</div><div class="l">İstikrar · 4 hf</div></div></div></div>
    <div class="kgrid"><div class="kpi" style="--kc:var(--c-str)"><div class="kl">Antrenman</div><div class="kv"><span data-count="${tot.sessions}">${tot.sessions}</span></div><div class="ks">tamamlanan kuvvet seansı${tot.fb?` · ${tot.fb} halı saha`:""}</div></div>
     <div class="kpi" style="--kc:var(--c-run)"><div class="kl">Koşu</div><div class="kv"><span data-count="${tot.km.toFixed(1)}" data-dec="1">${f1(tot.km)}</span><small>km</small></div><div class="ks">${tot.runs} koşuda toplam</div></div></div>
    <div class="sec"><div class="row between"><h2>Kilo yolculuğu</h2><span class="small muted">hedef ${f1(goal)} kg</span></div>
@@ -1676,6 +1680,13 @@ document.addEventListener("input",e=>{if(e.target.id==="gq")guideSearch(e.target
 document.addEventListener("keydown",e=>{if(e.key!=="Enter")return;if(e.target.id==="mk-x"){e.preventDefault();const b=$("[data-mkadd]");if(b)b.click()}if(e.target.id==="q-w"){e.preventDefault();const b=$("[data-qwsave]");if(b)b.click()}});
 window.addEventListener("resize",(()=>{let t;return()=>{clearTimeout(t);t=setTimeout(()=>{if(view==="prog"&&!sub&&!(S.mode==="sync"&&!KEY))drawProg()},180)}})());
 setInterval(()=>{const c=$("#slClock");if(c&&c.dataset.since)c.textContent=fmtDur(Math.max(0,Math.floor((Date.now()-new Date(c.dataset.since))/6e4)))},20000);
+/* gün değişimi: uygulama gece açık kaldıysa sabah bugüne geç */
+let lastToday=todayKey();
+function dayRoll(){const t=todayKey();if(t===lastToday)return;const was=lastToday;lastToday=t;
+  if(sel!==was)return;const a=document.activeElement;if(a&&/INPUT|TEXTAREA|SELECT/.test(a.tagName)&&!document.hidden)return;
+  flush();calMonth=t.slice(0,7);setSel(t);if(view==="home"&&sub)sub=null;render()}
+document.addEventListener("visibilitychange",()=>{if(!document.hidden){dayRoll();if(typeof pull==="function")pull()}});
+setInterval(dayRoll,60000);
 
 window.addEventListener("pagehide",flush);
 document.addEventListener("visibilitychange",()=>{if(document.hidden)flush()});
