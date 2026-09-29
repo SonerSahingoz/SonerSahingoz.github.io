@@ -622,6 +622,10 @@ body.gps-open{overflow:hidden}
 .leaflet-control-attribution{font-size:9px!important;background:rgba(0,0,0,.45)!important;color:#bbb!important}
 .leaflet-control-attribution a{color:#ddd!important}
 .gunlock{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+.rundot,.legend i.rundot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--c-run);box-shadow:none}
+.legend i.rundot{width:10px;height:10px;vertical-align:-1px}
+:root:not([data-theme="light"]) .leaflet-tile-pane{filter:invert(1) hue-rotate(180deg) brightness(.92) contrast(.88) saturate(.6)}
+@media (prefers-color-scheme:light){:root[data-theme="auto"] .leaflet-tile-pane{filter:none}}
 </style>
 </head><body>
 <div class="bg" aria-hidden="true"></div>
@@ -867,6 +871,7 @@ function renderHome(){
   if(p&&p.morning)sm.push(smallCard("morning","Sabah rutini",p.morning.mob?routineOf(p.morning.mob).name+" + yürüyüş":"Yürüyüş",d.morning&&d.morning.done));
   if(p)sm.push(smallCard("mob","Akşam mobility",routineOf(p.mob).name+" · "+routineOf(p.mob).min+" dk",d.mob&&d.mob.done));
   if(p&&p.prep)sm.push(smallCard("prep","Meal prep",LIB.MEAL[p.prep.id].name.split(" + ")[0]+" · "+p.prep.portions+" porsiyon",d.prepDone));
+  if(!(p&&p.run))sm.unshift(`<button type="button" class="card sm" data-sub="run"><div class="lbl"><span>Koşu · GPS</span><span class="go">›</span></div><div class="t small">${d.run&&num(d.run.km)>0?`Kaydedildi · ${esc(d.run.km)} km`:"Plan dışı koşu başlat ya da kaydet"}</div></button>`);
   if(!(p&&p.prep)){const nk=prepDates().find(k=>k>sel);if(nk)sm.push(`<button type="button" class="card sm" data-mkgo="${nk}"><div class="lbl"><span>Sonraki market</span><span class="go">›</span></div><div class="t small">${TR_DAYS[parse(nk).getDay()]} ${nice(nk)} · listeyi gör</div></button>`)}
   sm.push(smallCard("fb","Halı saha",d.football&&d.football.played?`Oynandı · ${esc(d.football.min||"?")} dk`:"Oynadıysan kaydet",null));
   sm.push(smallCard("week","Haftalık özet",weekSmall(),null));
@@ -1092,7 +1097,7 @@ function pageRun(p){
     <div class="row"><span class="muted small">Pace</span><b class="num" id="paceOut" style="font-size:26px">${km&&t?fmtPace(t/km):"–"}</b><span class="muted small">/km</span></div>
     <label class="f">Not<input id="r-note" data-run="note" value="${esc(x.note||"")}" placeholder="Rahattı, son km bacaklar ağırdı"></label>
     <div class="row between"><span class="small muted">Yazdıkça kaydedilir.</span>${delBtn("run","Koşu kaydını sil")}</div></div>
-    ${p?`<div class="alert warn small"><b>Halı saha:</b> ${esc(p.halisaha||"")}</div>`:""}`;
+    ${r&&p.halisaha?`<div class="alert warn small"><b>Halı saha:</b> ${esc(p.halisaha)}</div>`:""}`;
   return h;
 }
 /* food */
@@ -1294,7 +1299,7 @@ function renderCal(){
   let cells="",pl=0,dn=0,kmP=0,kmD=0,fbN=0;
   for(let i=0;i<42;i++){const k=addDays(start,i);const inM=parse(k).getMonth()===mo-1;if(!inM&&i>=35)break;const p=S.plan[k];const ty=typeOf(p);const d=dRec(k);
     if(inM){if(p&&(p.session||p.run)){pl++;if((d.session&&d.session.status==="Tamamlandı")||num(d.run&&d.run.km)>0)dn++}kmP+=num(p&&p.run&&p.run.km)||0;kmD+=num(d.run&&d.run.km)||0;if(d.football&&d.football.played)fbN++}
-    const mks=(p&&p.prep?`<svg viewBox="0 0 24 24" aria-label="market">${I.cart}</svg>`:"")+(d.football&&d.football.played?'<i class="fbdot" aria-label="halı saha"></i>':"");
+    const mks=(p&&p.prep?`<svg viewBox="0 0 24 24" aria-label="market">${I.cart}</svg>`:"")+(d.football&&d.football.played?'<i class="fbdot" aria-label="halı saha"></i>':"")+(!(p&&p.run)&&num(d.run&&d.run.km)>0?'<i class="rundot" aria-label="plan dışı koşu"></i>':"");
     cells+=`<button type="button" class="${inM?"":"empty"} k-${ty.k} ${dayClass(k)} ${k===t?"today":""}" data-cday="${k}" aria-label="${parse(k).getDate()} ${TR_MONL[parse(k).getMonth()]} ${esc(ty.l)}" ${inM?"":'tabindex="-1" aria-hidden="true"'}>${mks?`<span class="mks">${mks}</span>`:""}<span class="st"></span><span class="n">${parse(k).getDate()}</span><span class="k">${esc(calLabel(p))}</span></button>`}
   const weeks={};Object.keys(S.plan).filter(k=>k.slice(0,7)===calMonth).sort().forEach(k=>{const w=S.plan[k].week;(weeks[w]=weeks[w]||[]).push(k)});
   const an=calAnim==="n"?"calin-n":calAnim==="p"?"calin-p":"";calAnim=null;
@@ -1303,7 +1308,7 @@ function renderCal(){
   return `<header class="calhead"><div><div class="eyebrow" style="font:600 13px var(--f-display);text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:4px">Takvim</div><h1>${TR_MONL[mo-1]} ${y}</h1></div><div class="row" style="flex-wrap:nowrap;gap:8px">${isNow?"":`<button type="button" class="btn" data-monnow>Bugün</button>`}<button type="button" class="iconbtn" data-mon="-1" aria-label="Önceki ay" style="width:42px;height:42px"><svg viewBox="0 0 24 24" style="transform:rotate(90deg)">${I.chev}</svg></button><button type="button" class="iconbtn" data-mon="1" aria-label="Sonraki ay" style="width:42px;height:42px"><svg viewBox="0 0 24 24" style="transform:rotate(-90deg)">${I.chev}</svg></button></div></header>
     <div class="calclip"><div class="sec calwrap ${an}" id="calBody" data-swipe><div class="cal">${TR_D3.slice(1).concat(TR_D3[0]).map(d=>`<div class="h">${d}</div>`).join("")}${cells}</div>
     <div class="legend">${LG.map(([n,c])=>`<span><i style="--lc:var(${c})"></i>${n}</span>`).join("")}</div>
-    <div class="legend"><span><i style="--lc:var(--good)" class="dotl"></i>tamam</span><span><i style="--lc:var(--warn)" class="dotl"></i>yarım</span><span><i class="ring2"></i>kaçırıldı</span><span><svg viewBox="0 0 24 24" style="width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round">${I.cart}</svg>market/prep</span><span><i class="fbdot"></i>halı saha</span></div><div class="tiny muted" style="margin-top:6px">Ay değiştirmek için takvimi sağa ya da sola kaydır.</div></div></div>
+    <div class="legend"><span><i style="--lc:var(--good)" class="dotl"></i>tamam</span><span><i style="--lc:var(--warn)" class="dotl"></i>yarım</span><span><i class="ring2"></i>kaçırıldı</span><span><svg viewBox="0 0 24 24" style="width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round">${I.cart}</svg>market/prep</span><span><i class="fbdot"></i>halı saha</span><span><i class="rundot"></i>plan dışı koşu</span></div><div class="tiny muted" style="margin-top:6px">Ay değiştirmek için takvimi sağa ya da sola kaydır.</div></div></div>
     <div class="kgrid"><div class="kpi" style="--kc:var(--c-str)"><div class="kl">Antrenman</div><div class="kv"><span data-count="${dn}">${dn}</span><small>/ ${pl}</small></div><div class="ks">bu ay tamamlanan seans</div></div><div class="kpi" style="--kc:var(--c-run)"><div class="kl">Koşu</div><div class="kv"><span data-count="${kmD.toFixed(1)}" data-dec="1">${f1(kmD)}</span><small>km</small></div><div class="ks">plan ${f1(kmP)} km${fbN?` · halı saha ${fbN}`:""}</div></div></div>
     ${Object.entries(weeks).map(([w,ks])=>{const km=ks.reduce((a,k)=>a+(num(S.plan[k].run&&S.plan[k].run.km)||0),0);return `<div class="sec"><div class="row between"><h3>${esc(w)}</h3><span class="small muted">${f1(km)} km · ${ks.filter(k=>S.plan[k].session).length} kuvvet</span></div>${ks.map(k=>{const ty=typeOf(S.plan[k]);return `<button type="button" class="tick" data-cday="${k}"><span class="box ${dayClass(k)==="full"?"on":""}">✓</span><span class="tx"><span class="tinttag" style="--tc:${TC[ty.k]};${ty.k==="both"?"background:linear-gradient(135deg,var(--c-str),var(--c-run))":""}"></span> <b>${TR_D3[parse(k).getDay()]} ${parse(k).getDate()}</b> · ${esc(S.plan[k].title)}</span><span class="go">›</span></button>`}).join("")}</div>`}).join("")}`}
 function changeMonth(delta){
@@ -1741,9 +1746,8 @@ function loadLeaflet(){if(window.L)return Promise.resolve(window.L);if(loadLeafl
   loadLeaflet.p=new Promise((res,rej)=>{const c=document.createElement("link");c.rel="stylesheet";c.href="vendor/leaflet.css";document.head.appendChild(c);
     const s=document.createElement("script");s.src="vendor/leaflet.js";s.onload=()=>res(window.L);s.onerror=()=>{loadLeaflet.p=null;rej(new Error("leaflet"))};document.head.appendChild(s)});
   return loadLeaflet.p}
-function tileUrl(){const t=getTheme(),dark=t==="dark"||(t==="auto"&&matchMedia("(prefers-color-scheme:dark)").matches);
-  return dark?"https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png":"https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"}
-const TILE_ATTR='© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> · © <a href="https://carto.com/attributions">CARTO</a>';
+function tileUrl(){return "https://tile.openstreetmap.org/{z}/{x}/{y}.png"}
+const TILE_ATTR='© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>';
 function hav(a,b){const R=6371e3,r=Math.PI/180,dLa=(b[0]-a[0])*r,dLo=(b[1]-a[1])*r;const x=Math.sin(dLa/2)**2+Math.cos(a[0]*r)*Math.cos(b[0]*r)*Math.sin(dLo/2)**2;return 2*R*Math.asin(Math.sqrt(x))}
 const fmtHMS=sec=>{sec=Math.max(0,Math.round(sec));const h=Math.floor(sec/3600),m=Math.floor(sec%3600/60),s=sec%60;return h?h+":"+pad(m)+":"+pad(s):m+":"+pad(s)};
 const fmtKm=m=>(m/1000).toFixed(2).replace(".",",");
@@ -1787,7 +1791,7 @@ function gMin(){const v=$("#gpsv");if(v)v.hidden=true;document.body.classList.re
 function gClose(){gStopWatch();gWake(false);clearInterval(gTick);gTick=null;const v=$("#gpsv");if(v)v.remove();if(gMap){gMap.remove();gMap=null;gLine=null;gDot=null}document.body.classList.remove("gps-open");G=null;const pl=$("#gpspill");if(pl)pl.remove()}
 function gMapInit(){const el=$("#gmap");if(!el||gMap)return;loadLeaflet().then(L=>{if(gMap||!$("#gmap"))return;el.innerHTML="";
   gMap=L.map(el,{zoomControl:false,attributionControl:true});gMap.attributionControl.setPrefix(false);gMap.setView(G.fix?[G.fix[0],G.fix[1]]:[41.015,28.979],G.fix?16:11);
-  L.tileLayer(tileUrl(),{attribution:TILE_ATTR,subdomains:"abcd",maxZoom:19}).addTo(gMap);
+  L.tileLayer(tileUrl(),{attribution:TILE_ATTR,maxZoom:19}).addTo(gMap);
   gLine=L.featureGroup().addTo(gMap);gMap.on("dragstart",()=>{gFollow=false;const b=$(".grec");if(b)b.hidden=false});gDraw()}).catch(()=>{el.innerHTML='<div class="gmap-msg">Harita yüklenemedi (internet yok). Kayıt yine de çalışır.</div>'})}
 function gDraw(){if(!gMap||!G)return;const L=window.L;gLine.clearLayers();G.segs.forEach(s=>{if(s.length>1)L.polyline(s.map(p=>[p[0],p[1]]),{color:"#6F8BD8",weight:5,opacity:.95}).addTo(gLine)});
   if(G.fix){const ll=[G.fix[0],G.fix[1]];if(!gDot)gDot=L.circleMarker(ll,{radius:8,color:"#fff",weight:3,fillColor:"#4CC38F",fillOpacity:1}).addTo(gMap);else gDot.setLatLng(ll);
@@ -1851,7 +1855,7 @@ function gpsRunCard(x){const g=x&&x.gps;const live=G&&G.start;
   return h}
 function drawRunMap(){const el=$("#runMap");if(!el)return;const g=(draft.run||{}).gps;if(!g||!g.segs||!g.segs.length){el.remove();return}
   loadLeaflet().then(L=>{if(!el.isConnected)return;el.innerHTML="";const m=L.map(el,{zoomControl:false,attributionControl:true,dragging:true,scrollWheelZoom:false});m.attributionControl.setPrefix(false);
-    L.tileLayer(tileUrl(),{attribution:TILE_ATTR,subdomains:"abcd",maxZoom:19}).addTo(m);const fg=L.featureGroup().addTo(m);
+    L.tileLayer(tileUrl(),{attribution:TILE_ATTR,maxZoom:19}).addTo(m);const fg=L.featureGroup().addTo(m);
     g.segs.forEach(s=>L.polyline(s,{color:"#6F8BD8",weight:5}).addTo(fg));const f=g.segs[0][0],ls=g.segs[g.segs.length-1],l=ls[ls.length-1];
     L.circleMarker(f,{radius:6,color:"#fff",weight:2,fillColor:"#4CC38F",fillOpacity:1}).addTo(fg);L.circleMarker(l,{radius:6,color:"#fff",weight:2,fillColor:"#E5687A",fillOpacity:1}).addTo(fg);
     m.fitBounds(fg.getBounds(),{padding:[18,18]})}).catch(()=>{el.innerHTML='<div class="gmap-msg">Harita için internet gerekli.</div>'})}
