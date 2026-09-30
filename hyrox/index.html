@@ -653,6 +653,17 @@ body.gps-open{overflow:hidden}
 .gpin-s{display:inline-block;width:12px;height:12px;border-radius:50%;border:2px solid #fff;box-shadow:0 1px 3px rgba(0,0,0,.5);vertical-align:-2px}
 .gpin-s.start{background:#2FBF71}.gpin-s.end{border-radius:3px;background:conic-gradient(#111 25%,#fff 0 50%,#111 0 75%,#fff 0) 0 0/6px 6px}
 .leaflet-control-attribution{font-size:9px!important;background:rgba(0,0,0,.4)!important;color:#ccc!important;padding:0 5px!important}
+
+/* ===== gün şeridi (kaydırılabilir) ===== */
+.stripbar{display:flex;justify-content:space-between;align-items:center;min-height:30px;margin-bottom:-4px}
+.chip.sm{min-height:30px;padding:5px 12px;font-size:13px}
+.dstrip{display:flex;gap:7px;overflow-x:auto;overflow-y:hidden;scroll-snap-type:x proximity;-webkit-overflow-scrolling:touch;overscroll-behavior-x:contain;touch-action:pan-x pan-y;scrollbar-width:none;margin-inline:-16px;padding:14px 16px 6px;
+  -webkit-mask-image:linear-gradient(90deg,transparent 0,#000 16px,#000 calc(100% - 16px),transparent 100%);mask-image:linear-gradient(90deg,transparent 0,#000 16px,#000 calc(100% - 16px),transparent 100%)}
+.dstrip::-webkit-scrollbar{display:none}
+.dstrip .dayb{flex:0 0 46px;scroll-snap-align:center;transform:none!important;overflow:visible}
+.dstrip .dayb.m1{margin-left:10px}
+.dstrip .dayb .mo{position:absolute;top:-13px;left:50%;transform:translateX(-50%);font-size:10px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.06em;white-space:nowrap}
+@media (hover:hover){.dstrip .dayb:hover{transform:none!important}}
 </style>
 </head><body>
 <div class="bg" aria-hidden="true"></div>
@@ -823,6 +834,7 @@ function render(){
   if(enter){[...app.children].forEach((c,i)=>c.style.setProperty("--i",Math.min(i,14)));app.dataset.enter="1";clearTimeout(render.t);render.t=setTimeout(()=>{delete app.dataset.enter},1300)}
   if(view==="prog"&&!(S.mode==="sync"&&!KEY))drawProg();
   if(view==="home"&&sub==="run")drawRunMap();
+  if(view==="home"&&!sub&&!(S.mode==="sync"&&!KEY))stripCenter();
   if(enter)runCounts();
   [...app.children].forEach(c=>c.toggleAttribute("data-tall",c.offsetHeight>360));
   const h=app.querySelector("h1");$("#stickT").textContent=h?h.textContent:"";stickOn=!app.querySelector(".pagehead")&&!!h;updateChrome();
@@ -883,7 +895,7 @@ function renderHome(){
   const m=monday(sel);const ty=typeOf(p);
   let h=`<header class="top"><div style="min-width:0"><div class="eyebrow">${TR_DAYS[dd.getDay()]} ${nice(sel)}${sel===t?" · bugün":""} · ${esc(p?p.week:weekLabel(sel))}</div><h1>${esc(p?p.title:"Plan yok")}</h1></div>
     <div class="race" title="Yarışa kalan gün"><div class="v num">${days}</div><div class="l">gün kaldı</div></div></header>`;
-  h+=`<div class="strip"><button type="button" class="nav" data-wk="-7" aria-label="Önceki hafta">‹</button>${[0,1,2,3,4,5,6].map(i=>{const k=addDays(m,i);const c=dayClass(k);return `<button type="button" class="dayb ${c} ${k===t?"today":""} ${k===sel?"sel":""}" data-day="${k}" style="--tc:${TC[typeOf(S.plan[k]).k]}"><span class="d">${TR_D3[parse(k).getDay()]}</span><span class="n">${parse(k).getDate()}</span><span class="dot"></span></button>`}).join("")}<button type="button" class="nav" data-wk="7" aria-label="Sonraki hafta">›</button></div>`;
+  h+=dayStrip(t);
   const st=status(sel);const nx=nextItem();
   h+=`<button type="button" class="next" ${nx?`data-sub="${nx.s}"`:""}><div class="ring">${ringSVG(st.ratio)}<div class="t">${st.done}/${st.total}</div></div><div style="min-width:0;flex:1"><div class="k">${nx?(sel===t?"Sıradaki":"İlk iş")+" · "+esc(nx.t):"Gün tamam"}</div><div class="v">${nx?esc(nx.txt):"Bugünkü her şey bitti. Eline sağlık."}</div></div>${nx?'<span class="go">›</span>':""}</button>`;
   if(sel===t)h+=sleepCard();
@@ -1000,6 +1012,23 @@ function sleepAct(a){
     if(mins<30||mins>18*60){sleepEdit={...c,bed:b,wake:w,msg:"Süre 30 dk ile 18 sa arasında olmalı."};render();return}
     const h=applySleep(c.date,bd,wd);if(S.settings.sleepStart)clearSleep();sleepEdit=null;toast("Kaydedildi · "+fmtDur(h*60),false,"hold");render();return}
 }
+
+/* ---------- GÜN ŞERİDİ (parmakla kaydırılır) ---------- */
+let stripX=null,stripSel=null;
+function stripRange(t){const planKeys=Object.keys(S.plan).sort();const lastPlan=planKeys[planKeys.length-1]||t;
+  const lo=[t,sel].sort()[0],hi=[t,sel,lastPlan].sort().pop();
+  return {from:monday(addDays(lo,-21)),to:addDays(monday(hi),13)}}
+function dayStrip(t){const {from,to}=stripRange(t);let b="";
+  for(let k=from;k<=to;k=addDays(k,1)){const dt=parse(k),c=dayClass(k);
+    b+=`<button type="button" class="dayb ${c} ${k===t?"today":""} ${k===sel?"sel":""} ${dt.getDate()===1?"m1":""}" data-day="${k}" style="--tc:${TC[typeOf(S.plan[k]).k]}" aria-label="${TR_DAYS[dt.getDay()]} ${nice(k)}"${k===sel?' aria-current="date"':""}>${dt.getDate()===1?`<span class="mo">${TR_MON[dt.getMonth()]}</span>`:""}<span class="d">${TR_D3[dt.getDay()]}</span><span class="n">${dt.getDate()}</span><span class="dot"></span></button>`}
+  const sd=parse(sel);
+  return `<div class="stripbar"><span class="small muted">${TR_MONL[sd.getMonth()]} ${sd.getFullYear()}</span>${sel!==t?`<button type="button" class="chip sm" data-day="${t}">Bugüne dön</button>`:""}</div><div class="dstrip" id="dstrip">${b}</div>`}
+function stripCenter(){const el=$("#dstrip");if(!el)return;const b=el.querySelector(".dayb.sel");
+  if(stripX!=null)el.scrollLeft=stripX;
+  if(b&&(stripSel!==sel||stripX==null)){stripSel=sel;const target=Math.max(0,b.offsetLeft-(el.clientWidth-b.offsetWidth)/2);
+    if(stripX==null||lite())el.scrollLeft=target;else el.scrollTo({left:target,behavior:"smooth"})}
+  stripX=el.scrollLeft;
+  el.onscroll=()=>{stripX=el.scrollLeft}}
 
 /* ---------- HIZLI KAYIT · KİLO KOÇU · REKOR ---------- */
 const fmt1=v=>Number(v).toFixed(1).replace(".",",");
