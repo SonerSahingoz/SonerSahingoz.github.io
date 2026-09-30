@@ -624,8 +624,35 @@ body.gps-open{overflow:hidden}
 .gunlock{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
 .rundot,.legend i.rundot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--c-run);box-shadow:none}
 .legend i.rundot{width:10px;height:10px;vertical-align:-1px}
-:root:not([data-theme="light"]) .leaflet-tile-pane{filter:invert(1) hue-rotate(180deg) brightness(.92) contrast(.88) saturate(.6)}
-@media (prefers-color-scheme:light){:root[data-theme="auto"] .leaflet-tile-pane{filter:none}}
+
+/* ===== harita v2 ===== */
+.gmap,.rmap{background:#1b1d21}
+.gmap[data-style="light"],.rmap[data-style="light"]{background:#e8e8e8}
+.gtools{position:absolute;top:calc(12px + env(safe-area-inset-top,0px));right:12px;z-index:500;display:flex;flex-direction:column;align-items:flex-end;gap:8px}
+.gtools .grec{position:static}
+.gstyle{height:36px;padding:0 14px;border-radius:999px;border:1px solid rgba(255,255,255,.14);background:rgba(18,20,24,.82);color:#fff;font-size:13px;font-weight:600;box-shadow:0 4px 14px rgba(0,0,0,.35)}
+.grec{width:44px;height:44px;border-radius:50%;border:1px solid rgba(255,255,255,.14);background:rgba(18,20,24,.82);display:grid;place-items:center;padding:0;box-shadow:0 4px 14px rgba(0,0,0,.35)}
+.grec svg{width:22px;height:22px;stroke:#fff;fill:none;stroke-width:2;stroke-linecap:round}
+.gmin{background:rgba(18,20,24,.82);border-color:rgba(255,255,255,.14);box-shadow:0 4px 14px rgba(0,0,0,.35)}
+.gmin svg{stroke:#fff}
+.gme{position:relative;width:0;height:0}
+.gme::before{content:"";position:absolute;left:-22px;top:-22px;width:44px;height:44px;border-radius:50%;background:rgba(61,139,255,.28);animation:gping 2s ease-out infinite}
+.gme i{position:absolute;left:-9px;top:-9px;width:18px;height:18px;border-radius:50%;background:#3D8BFF;border:3px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.45)}
+@keyframes gping{0%{transform:scale(.4);opacity:1}100%{transform:scale(1.4);opacity:0}}
+.gpin{position:relative;width:0;height:0}
+.gpin::after{content:"";position:absolute;left:-8px;top:-8px;width:16px;height:16px;border-radius:50%;border:3px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.5);box-sizing:border-box}
+.gpin.start::after{background:#2FBF71}
+.gpin.end::after{left:-9px;top:-9px;width:18px;height:18px;border-radius:4px;background:conic-gradient(#111 25%,#fff 0 50%,#111 0 75%,#fff 0) 0 0/8px 8px}
+.gkm{position:absolute;left:0;top:0;transform:translate(-50%,-50%);min-width:20px;height:20px;padding:0 5px;border-radius:10px;background:#fff;color:#111;display:grid;place-items:center;font:700 11px/1 var(--f-body);box-shadow:0 1px 5px rgba(0,0,0,.5);white-space:nowrap}
+.rmapw{position:relative;border-radius:16px;overflow:hidden}
+.rmapw .rmap{height:280px;border-radius:0}
+.rmapw .gstyle{position:absolute;top:10px;right:10px;z-index:500;height:32px;font-size:12px}
+.rlegend{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted);flex-wrap:wrap}
+.rlegend i{flex:none;width:90px;height:6px;border-radius:3px;background:linear-gradient(90deg,rgb(63,167,255),rgb(255,210,63),rgb(255,77,46))}
+.rlegend .rl2{margin-left:auto;display:flex;align-items:center;gap:6px}
+.gpin-s{display:inline-block;width:12px;height:12px;border-radius:50%;border:2px solid #fff;box-shadow:0 1px 3px rgba(0,0,0,.5);vertical-align:-2px}
+.gpin-s.start{background:#2FBF71}.gpin-s.end{border-radius:3px;background:conic-gradient(#111 25%,#fff 0 50%,#111 0 75%,#fff 0) 0 0/6px 6px}
+.leaflet-control-attribution{font-size:9px!important;background:rgba(0,0,0,.4)!important;color:#ccc!important;padding:0 5px!important}
 </style>
 </head><body>
 <div class="bg" aria-hidden="true"></div>
@@ -1746,8 +1773,23 @@ function loadLeaflet(){if(window.L)return Promise.resolve(window.L);if(loadLeafl
   loadLeaflet.p=new Promise((res,rej)=>{const c=document.createElement("link");c.rel="stylesheet";c.href="vendor/leaflet.css";document.head.appendChild(c);
     const s=document.createElement("script");s.src="vendor/leaflet.js";s.onload=()=>res(window.L);s.onerror=()=>{loadLeaflet.p=null;rej(new Error("leaflet"))};document.head.appendChild(s)});
   return loadLeaflet.p}
-function tileUrl(){return "https://tile.openstreetmap.org/{z}/{x}/{y}.png"}
-const TILE_ATTR='© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>';
+/* harita altlıkları (Esri, anahtar gerekmez) */
+const ESRI="https://server.arcgisonline.com/ArcGIS/rest/services/";
+const MAPS={dark:{n:"Koyu",base:ESRI+"Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}",ref:ESRI+"Canvas/World_Dark_Gray_Reference/MapServer/tile/{z}/{y}/{x}",nz:16},
+  light:{n:"Açık",base:ESRI+"Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}",ref:ESRI+"Canvas/World_Light_Gray_Reference/MapServer/tile/{z}/{y}/{x}",nz:16},
+  sat:{n:"Uydu",base:ESRI+"World_Imagery/MapServer/tile/{z}/{y}/{x}",ref:ESRI+"Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}",nz:19}};
+const MAP_ORDER=["dark","light","sat"],MAP_ATTR='Esri · © <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>';
+const ROUTE="#FC5200";
+function mapStyle(){let k=null;try{k=localStorage.getItem("hx-mapstyle")}catch(e){}if(MAPS[k])return k;const t=getTheme();return t==="light"||(t==="auto"&&!matchMedia("(prefers-color-scheme:dark)").matches)?"light":"dark"}
+const mapSetters=new Set();
+function addBase(m,el){const L=window.L;let layers=[];const set=k=>{layers.forEach(l=>m.removeLayer(l));const st=MAPS[k];
+    layers=[L.tileLayer(st.base,{maxZoom:19,maxNativeZoom:st.nz,attribution:MAP_ATTR}).addTo(m),L.tileLayer(st.ref,{maxZoom:19,maxNativeZoom:st.nz}).addTo(m)];
+    el.dataset.style=k;const b=el.parentNode&&el.parentNode.querySelector("[data-mapstyle]");if(b)b.textContent=st.n};
+  set(mapStyle());const rec={el,set};mapSetters.add(rec);return rec}
+function styleBtn(){return `<button type="button" class="gstyle" data-mapstyle aria-label="Harita görünümünü değiştir">${MAPS[mapStyle()].n}</button>`}
+const dotIcon=(cls,html="")=>window.L.divIcon({className:"",html:`<div class="${cls}">${html}</div>`,iconSize:[0,0]});
+/* pace'e göre renk: yavaş mavi → sarı → hızlı turuncu-kırmızı */
+function paceColor(q){q=Math.max(0,Math.min(1,q));const A=[[63,167,255],[255,210,63],[255,77,46]];const i=q<.5?0:1,f=q<.5?q*2:(q-.5)*2;const c=A[i].map((v,j)=>Math.round(v+(A[i+1][j]-v)*f));return `rgb(${c})`}
 function hav(a,b){const R=6371e3,r=Math.PI/180,dLa=(b[0]-a[0])*r,dLo=(b[1]-a[1])*r;const x=Math.sin(dLa/2)**2+Math.cos(a[0]*r)*Math.cos(b[0]*r)*Math.sin(dLo/2)**2;return 2*R*Math.asin(Math.sqrt(x))}
 const fmtHMS=sec=>{sec=Math.max(0,Math.round(sec));const h=Math.floor(sec/3600),m=Math.floor(sec%3600/60),s=sec%60;return h?h+":"+pad(m)+":"+pad(s):m+":"+pad(s)};
 const fmtKm=m=>(m/1000).toFixed(2).replace(".",",");
@@ -1779,7 +1821,7 @@ document.addEventListener("visibilitychange",()=>{if(document.visibilityState===
 /* arayüz */
 function gOpen(){if(!G){const r=gRestore();G=r||gNew();if(r){r.segs.push([]);r.confirm=null}}
   let v=$("#gpsv");if(!v){v=document.createElement("div");v.id="gpsv";v.className="gpsv";v.setAttribute("role","dialog");v.setAttribute("aria-label","GPS koşu");
-    v.innerHTML=`<div class="gmap" id="gmap"><div class="gmap-msg">Harita yükleniyor…</div></div><button type="button" class="gmin" data-g="min" aria-label="Küçült">${svgI("chev")}</button><button type="button" class="grec" data-g="recenter" aria-label="Konumuma dön" hidden>◎</button>
+    v.innerHTML=`<div class="gmap" id="gmap"><div class="gmap-msg">Harita yükleniyor…</div></div><button type="button" class="gmin" data-g="min" aria-label="Küçült">${svgI("chev")}</button><div class="gtools">${styleBtn()}<button type="button" class="grec" data-g="recenter" aria-label="Konumuma dön" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3.5"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/><circle cx="12" cy="12" r="8"/></svg></button></div>
     <div class="gpanel"><div class="gtime num" id="gT">0:00</div><div class="gstats"><div><b class="num" id="gD">0,00</b><small>km</small></div><div><b class="num" id="gA">–</b><small>ort. pace</small></div><div><b class="num" id="gC">–</b><small>şu anki pace</small></div></div>
     <div class="gacc" id="gAcc"></div><div class="gbtns" id="gBtns"></div><div class="gsplits" id="gSplits"></div>
     <label class="gvoice"><input type="checkbox" id="gVoice" ${gVoice()?"checked":""}> Her km'de sesli bildirim</label>
@@ -1791,10 +1833,12 @@ function gMin(){const v=$("#gpsv");if(v)v.hidden=true;document.body.classList.re
 function gClose(){gStopWatch();gWake(false);clearInterval(gTick);gTick=null;const v=$("#gpsv");if(v)v.remove();if(gMap){gMap.remove();gMap=null;gLine=null;gDot=null}document.body.classList.remove("gps-open");G=null;const pl=$("#gpspill");if(pl)pl.remove()}
 function gMapInit(){const el=$("#gmap");if(!el||gMap)return;loadLeaflet().then(L=>{if(gMap||!$("#gmap"))return;el.innerHTML="";
   gMap=L.map(el,{zoomControl:false,attributionControl:true});gMap.attributionControl.setPrefix(false);gMap.setView(G.fix?[G.fix[0],G.fix[1]]:[41.015,28.979],G.fix?16:11);
-  L.tileLayer(tileUrl(),{attribution:TILE_ATTR,maxZoom:19}).addTo(gMap);
+  addBase(gMap,el);
   gLine=L.featureGroup().addTo(gMap);gMap.on("dragstart",()=>{gFollow=false;const b=$(".grec");if(b)b.hidden=false});gDraw()}).catch(()=>{el.innerHTML='<div class="gmap-msg">Harita yüklenemedi (internet yok). Kayıt yine de çalışır.</div>'})}
-function gDraw(){if(!gMap||!G)return;const L=window.L;gLine.clearLayers();G.segs.forEach(s=>{if(s.length>1)L.polyline(s.map(p=>[p[0],p[1]]),{color:"#6F8BD8",weight:5,opacity:.95}).addTo(gLine)});
-  if(G.fix){const ll=[G.fix[0],G.fix[1]];if(!gDot)gDot=L.circleMarker(ll,{radius:8,color:"#fff",weight:3,fillColor:"#4CC38F",fillOpacity:1}).addTo(gMap);else gDot.setLatLng(ll);
+function gDraw(){if(!gMap||!G)return;const L=window.L;gLine.clearLayers();
+  G.segs.forEach(s=>{if(s.length>1){const ll=s.map(p=>[p[0],p[1]]);L.polyline(ll,{color:ROUTE,weight:13,opacity:.22,lineCap:"round",lineJoin:"round",interactive:false}).addTo(gLine);L.polyline(ll,{color:ROUTE,weight:5,opacity:1,lineCap:"round",lineJoin:"round",interactive:false}).addTo(gLine)}});
+  const f=G.segs[0]&&G.segs[0][0];if(G.start&&f)L.marker([f[0],f[1]],{icon:dotIcon("gpin start"),interactive:false}).addTo(gLine);
+  if(G.fix){const ll=[G.fix[0],G.fix[1]];if(!gDot)gDot=L.marker(ll,{icon:dotIcon("gme","<i></i>"),interactive:false,zIndexOffset:1000}).addTo(gMap);else gDot.setLatLng(ll);
     if(gFollow)gMap.setView(ll,Math.max(gMap.getZoom(),15),{animate:false})}}
 function gUI(){if(!G)return;const el=gElapsed()/1000,km=G.dist/1000;
   const pill=()=>{let p=$("#gpspill");const vis=G.start&&$("#gpsv")&&$("#gpsv").hidden;if(!vis){if(p)p.remove();return}
@@ -1814,7 +1858,7 @@ function gUI(){if(!G)return;const el=gElapsed()/1000,km=G.dist/1000;
   const bb=$("#gBtns");if(bb.dataset.k!==b){bb.innerHTML=b;bb.dataset.k=b}
   if(G.confirm==="finish")a.textContent=`${fmtKm(G.dist)} km · ${fmtHMS(el)} kaydedilecek.`;
   const sp=$("#gSplits"),sk=G.splits.join(",");if(sp.dataset.k!==sk){sp.dataset.k=sk;sp.innerHTML=G.splits.length?G.splits.map((s,i)=>`<span><b>${i+1}. km</b> ${fmtPace(s)}</span>`).join(""):""}}
-function gThin(seg){const out=[];seg.forEach(p=>{const l=out[out.length-1];if(!l||hav(l,p)>=8)out.push([+p[0].toFixed(5),+p[1].toFixed(5)])});const last=seg[seg.length-1];if(last&&out.length&&hav(out[out.length-1],last)>0)out.push([+last[0].toFixed(5),+last[1].toFixed(5)]);
+function gThin(seg){const out=[];const P=p=>[+p[0].toFixed(5),+p[1].toFixed(5),Math.max(0,Math.round((p[2]-G.start)/1000))];seg.forEach(p=>{const l=out[out.length-1];if(!l||hav(l,p)>=8)out.push(P(p))});const last=seg[seg.length-1];if(last&&out.length&&hav(out[out.length-1],last)>0)out.push(P(last));
   if(out.length>400){const k=Math.ceil(out.length/400);return out.filter((p,i)=>i%k===0||i===out.length-1)}return out}
 function gSave(){const sec=Math.round(gElapsed()/1000),km=G.dist/1000;if(km<0.05){toast("50 m'den kısa, kaydedilmedi",true);return}
   const lastKm=km-G.splits.length,rest=sec-G.splits.reduce((a,b)=>a+b,0);
@@ -1846,19 +1890,31 @@ function gResumeCheck(){if(gRestore())gOpen()}
 setTimeout(gResumeCheck,0);
 /* koşu sayfası: GPS kartı + kayıtlı rota */
 function gpsRunCard(x){const g=x&&x.gps;const live=G&&G.start;
-  let h=`<div class="sec gcard"><div class="row between"><div><h3 style="margin:0">GPS ile koşu</h3><div class="small muted">Strava gibi: rota, mesafe, pace ve km ayrımları otomatik kaydedilir.</div></div></div>
+  let h=`<div class="sec gcard"><div class="row between"><div><h3 style="margin:0">GPS ile koşu</h3><div class="small muted">Rota, mesafe, pace ve km ayrımları otomatik kaydedilir.</div></div></div>
     <button type="button" class="bigbtn" data-g="open">${live?"Devam eden koşuya dön":g?"Yeni GPS koşusu başlat":"GPS ile koşuyu başlat"}</button>${g&&!live?`<div class="tiny muted">Yeni koşu kaydedilirse bu günün koşusunun yerine geçer.</div>`:""}</div>`;
   if(g){const sp=g.splits||[];const all=sp.map((s,i)=>({l:(i+1)+". km",s,p:s}));if(g.rest)all.push({l:"son "+String(g.rest.km).replace(".",",")+" km",s:g.rest.sec,p:g.rest.sec/g.rest.km});
     const best=sp.length?Math.min(...sp):null;
-    h+=`<div class="sec"><div class="row between"><h3 style="margin:0">Rota</h3><span class="small muted">${esc(x.km)} km · ${esc(x.time)} · ${fmtPace(x.pace)} /km</span></div><div class="rmap" id="runMap"><div class="gmap-msg">Harita yükleniyor…</div></div>
+    h+=`<div class="sec"><div class="row between"><h3 style="margin:0">Rota</h3><span class="small muted">${esc(x.km)} km · ${esc(x.time)} · ${fmtPace(x.pace)} /km</span></div><div class="rmapw"><div class="rmap" id="runMap"><div class="gmap-msg">Harita yükleniyor…</div></div>${styleBtn()}</div><div class="rlegend" id="runLegend" hidden><span>yavaş</span><i></i><span>hızlı</span><span class="rl2"><b class="gpin-s start"></b>başlangıç <b class="gpin-s end"></b>bitiş</span></div>
       ${all.length?`<div class="splits">${all.map(a=>`<div class="${a.s===best&&sp.length>1?"best":""}"><span>${esc(a.l)}</span><i style="--w:${Math.round(Math.min(1,(Math.min(...all.map(z=>z.p)))/a.p)*100)}%"></i><b class="num">${fmtPace(a.p)}</b></div>`).join("")}</div>`:""}</div>`}
   return h}
-function drawRunMap(){const el=$("#runMap");if(!el)return;const g=(draft.run||{}).gps;if(!g||!g.segs||!g.segs.length){el.remove();return}
-  loadLeaflet().then(L=>{if(!el.isConnected)return;el.innerHTML="";const m=L.map(el,{zoomControl:false,attributionControl:true,dragging:true,scrollWheelZoom:false});m.attributionControl.setPrefix(false);
-    L.tileLayer(tileUrl(),{attribution:TILE_ATTR,maxZoom:19}).addTo(m);const fg=L.featureGroup().addTo(m);
-    g.segs.forEach(s=>L.polyline(s,{color:"#6F8BD8",weight:5}).addTo(fg));const f=g.segs[0][0],ls=g.segs[g.segs.length-1],l=ls[ls.length-1];
-    L.circleMarker(f,{radius:6,color:"#fff",weight:2,fillColor:"#4CC38F",fillOpacity:1}).addTo(fg);L.circleMarker(l,{radius:6,color:"#fff",weight:2,fillColor:"#E5687A",fillOpacity:1}).addTo(fg);
-    m.fitBounds(fg.getBounds(),{padding:[18,18]})}).catch(()=>{el.innerHTML='<div class="gmap-msg">Harita için internet gerekli.</div>'})}
+function drawRunMap(){const el=$("#runMap");if(!el)return;const g=(draft.run||{}).gps;if(!g||!g.segs||!g.segs.length){const w=el.closest(".rmapw");(w||el).remove();return}
+  loadLeaflet().then(L=>{if(!el.isConnected)return;el.innerHTML="";const m=L.map(el,{zoomControl:false,attributionControl:true,scrollWheelZoom:false});m.attributionControl.setPrefix(false);
+    addBase(m,el);const fg=L.featureGroup().addTo(m);
+    /* pace renkli rota */
+    const pieces=[];g.segs.forEach(sg=>{for(let i=0;i<sg.length-1;i++){const a=sg[i],b=sg[i+1];const d=hav(a,b);const dt=a.length>2&&b.length>2?b[2]-a[2]:null;pieces.push({a,b,d,dt})}});
+    const sm=pieces.map((p,i)=>{let d=0,t=0;for(let j=Math.max(0,i-3);j<=Math.min(pieces.length-1,i+3);j++){if(pieces[j].dt!=null&&pieces[j].dt>0){d+=pieces[j].d;t+=pieces[j].dt}}return d>15&&t>0?t/(d/1000):null});
+    const vals=sm.filter(v=>v!=null&&v<1200).sort((a,b)=>a-b);const lo=vals.length?vals[Math.floor(vals.length*.1)]:0,hi=vals.length?vals[Math.floor(vals.length*.9)]:0;const colored=vals.length>4&&hi-lo>5;
+    g.segs.forEach(sg=>{if(sg.length>1)L.polyline(sg.map(p=>[p[0],p[1]]),{color:colored?"#000":ROUTE,weight:11,opacity:colored?.35:.22,lineCap:"round",lineJoin:"round",interactive:false}).addTo(fg)});
+    if(colored)pieces.forEach((p,i)=>{const v=sm[i];L.polyline([[p.a[0],p.a[1]],[p.b[0],p.b[1]]],{color:v==null?ROUTE:paceColor((hi-v)/(hi-lo)),weight:5,opacity:1,lineCap:"round",interactive:false}).addTo(fg)});
+    else g.segs.forEach(sg=>{if(sg.length>1)L.polyline(sg.map(p=>[p[0],p[1]]),{color:ROUTE,weight:5,lineCap:"round",lineJoin:"round",interactive:false}).addTo(fg)});
+    /* km işaretleri */
+    let cum=0,next=1000,n=1;pieces.forEach(p=>{if(cum+p.d>=next){const f=(next-cum)/p.d;L.marker([p.a[0]+(p.b[0]-p.a[0])*f,p.a[1]+(p.b[1]-p.a[1])*f],{icon:dotIcon("gkm",String(n)),interactive:false}).addTo(fg);n++;next+=1000}cum+=p.d});
+    const f=g.segs[0][0],ls=g.segs[g.segs.length-1],l=ls[ls.length-1];
+    L.marker([f[0],f[1]],{icon:dotIcon("gpin start"),interactive:false}).addTo(fg);L.marker([l[0],l[1]],{icon:dotIcon("gpin end"),interactive:false,zIndexOffset:500}).addTo(fg);
+    m.fitBounds(fg.getBounds(),{padding:[26,26],maxZoom:17});const lg=$("#runLegend");if(lg)lg.hidden=!colored}).catch(()=>{el.innerHTML='<div class="gmap-msg">Harita için internet gerekli.</div>'})}
+/* harita görünümü değiştir: koyu → açık → uydu */
+document.addEventListener("click",e=>{const b=e.target.closest&&e.target.closest("[data-mapstyle]");if(!b)return;const cur=mapStyle(),nx=MAP_ORDER[(MAP_ORDER.indexOf(cur)+1)%MAP_ORDER.length];
+  try{localStorage.setItem("hx-mapstyle",nx)}catch(err){}mapSetters.forEach(r=>{if(!r.el.isConnected){mapSetters.delete(r);return}r.set(nx)});$$("[data-mapstyle]").forEach(x=>x.textContent=MAPS[nx].n)});
 
 window.addEventListener("pagehide",flush);
 document.addEventListener("visibilitychange",()=>{if(document.hidden)flush()});
